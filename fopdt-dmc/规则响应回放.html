@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8">
+<title>规则控制器 · 实际生产回放（顾问模式）</title>
+<script src="../趋势分析/echarts.min.js"></script>
+<style>body{font-family:'Microsoft YaHei',sans-serif;margin:16px;background:#fafafa}
+#main{width:96vw;height:760px;background:#fff;border:1px solid #e0e0e0}
+.note{color:#666;font-size:13px;line-height:1.7}</style></head>
+<body>
+<h3>规则控制器 · 闭环回放（下控语义：现场水率=上一次推送值，温度=实际曲线）</h3>
+<div class="note">蓝线 = 模型推送水率（自持轨迹）；灰线 = 实际人工水率（仅对照，闭环后不存在）。
+红背景 = 实际 T3&gt;130℃，蓝背景 = &lt;100℃。温度用实际曲线。</div>
+<div id="main"></div>
+<script>
+var D = {"t": ["03:10", "03:11", "03:12", "03:13", "03:14", "03:15", "03:16", "03:17", "03:18", "03:19", "03:20", "03:21", "03:22", "03:23", "03:24", "03:25", "03:26", "03:27", "03:28", "03:29", "03:30", "03:31", "03:32", "03:33", "03:34", "03:35", "03:36", "03:37", "03:38", "03:39", "03:40", "03:41", "03:42", "03:43", "03:44", "03:45", "03:46", "03:47", "03:48", "03:49", "03:50", "03:51", "03:52", "03:53", "03:54", "03:55", "03:56", "03:57", "03:58", "03:59", "04:00"], "t3": [109.77, 109.67, 109.5, 109.33, 109.23, 108.97, 108.9, 108.8, 108.7, 109.03, 109.3, 109.53, 110.93, 114.13, 116.3, 124.53, 132.1, 137.87, 141.6, 148.63, 149.17, 150.93, 151.67, 150.77, 150.17, 149.4, 148.53, 148.2, 148.03, 148.37, 148.83, 149.2, 149.3, 148.63, 148.2, 147.73, 147.53, 147.6, 147.8, 147.8, 147.63, 147.47, 147.23, 147.13, 147.13, 147.0, 146.83, 146.7, 146.83, 147.17, 147.23], "ratio_act": [620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0], "ratio_rec": [620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0], "over_hi": [[{"xAxis": 16}, {"xAxis": 50}]], "over_lo": []};
+var mk = function(pairs,color){return pairs.map(function(p){
+  return [{xAxis:p[0].xAxis,itemStyle:{color:color}},
+          {xAxis:p[1].xAxis,itemStyle:{color:color}}];});};
+var chart = echarts.init(document.getElementById('main'));
+chart.setOption({animation:false,
+  axisPointer:{link:[{xAxisIndex:'all'}]},
+  tooltip:{trigger:'axis'},
+  legend:{data:['T3实际','人工水率(对照)','模型推送水率'],top:10},
+  grid:[{left:70,right:40,top:60,height:'34%'},
+        {left:70,right:40,top:'56%',height:'32%'}],
+  xAxis:[{type:'category',data:D.t,gridIndex:0,axisLabel:{show:false}},
+         {type:'category',data:D.t,gridIndex:1}],
+  yAxis:[{name:'T3 ℃',gridIndex:0,min:70,max:170},
+         {name:'水率 L/t',gridIndex:1,min:540,max:720}],
+  series:[
+    {name:'T3实际',type:'line',data:D.t3,xAxisIndex:0,yAxisIndex:0,symbol:'none',
+     lineStyle:{color:'#555',width:1.4}},
+    {name:'带130',type:'line',xAxisIndex:0,yAxisIndex:0,data:[],
+     markLine:{silent:true,symbol:'none',label:{formatter:'130℃',position:'insideEndTop'},
+       lineStyle:{color:'#c0392b',type:'dashed'},data:[{yAxis:130}]}},
+    {name:'带100',type:'line',xAxisIndex:0,yAxisIndex:0,data:[],
+     markLine:{silent:true,symbol:'none',label:{formatter:'100℃',position:'insideEndBottom'},
+       lineStyle:{color:'#2471a3',type:'dashed'},data:[{yAxis:100}]}},
+    {name:'超标背景',type:'line',xAxisIndex:0,yAxisIndex:0,data:[],
+     markArea:{silent:true,data:mk(D.over_hi,'rgba(192,57,43,0.10)')
+       .concat(mk(D.over_lo,'rgba(36,113,163,0.10)'))}},
+    {name:'人工水率(对照)',type:'line',data:D.ratio_act,xAxisIndex:1,yAxisIndex:1,
+     symbol:'none',lineStyle:{color:'#888',width:1.4}},
+    {name:'模型推送水率',type:'line',data:D.ratio_rec,xAxisIndex:1,yAxisIndex:1,
+     symbol:'none',lineStyle:{color:'#1f6feb',width:2},step:'end'}
+  ]
+});
+window.addEventListener('resize',function(){chart.resize();});
+</script></body></html>

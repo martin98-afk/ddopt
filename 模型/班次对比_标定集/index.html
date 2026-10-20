@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8"><title>标定集班次对比 · 实际模型</title>
+<style>body{font-family:'Microsoft YaHei',sans-serif;margin:20px;background:#fafafa}
+table{border-collapse:collapse;background:#fff}
+th,td{border:1px solid #ddd;padding:8px 12px;font-size:13px;text-align:center}
+th{background:#f0f0f0}a{color:#1f6feb;text-decoration:none}
+.up{color:#1a9c6e;font-weight:bold}.down{color:#c0392b;font-weight:bold}
+.note{color:#666;font-size:13px;margin:12px 0;line-height:1.7}</style></head><body>
+<h3>标定集 · 实际模型（趋势控制）vs 人工</h3>
+<div class="note">
+每个班次一份独立对比图。合格率 = T3 落在 100~130℃ 的时间占比。<br>
+模型方 = <b>现役生产代码</b>（XshController + trend.TrendController + 电流规则），
+控制周期 10 min；温度响应用单调 FOPDT 核（K=−0.151 ℃/(L/t)、τ=60min、θ=30min，
+无前段正峰）
++ 共同扰动法推演，两方共用同一扰动，差异只来自水率操作。
+温度推演采「覆盖式」（整段历史水率视为当前值），与 模型/ab_test.py、
+fopdt-dmc/replay_by_shift.py 同口径；因果叠加式在 10min 控制周期下会自激振荡。<br>
+数据源：D:/work/脱硫脱硝/data/脱硫脱硝消石灰制备数据<br>缓存：C:\Users\mading\.drifox\workspaces\消石灰制备\模型\.cache_calib<br>
+加权平均提升（按时长）：<b>+13.3 个百分点</b>，共 8 个班次。
+</div>
+<table>
+<tr><th>班次</th><th>时长</th><th>人工合格</th><th>模型合格</th><th>提升</th>
+<th>人工σ</th><th>模型σ</th><th>人工>130</th><th>模型>130</th><th>模型水率范围</th></tr>
+<tr><td><a href="班次_1012_2034.html">10-12 20:34 ~ 10-13 01:54</a></td><td>321</td><td>96.6%</td><td>96.6%</td><td class="up">+0.0</td><td>5.88</td><td>5.68</td><td>0.0%</td><td>0.0%</td><td>553~640</td></tr>
+<tr><td><a href="班次_1014_2216.html">10-14 22:16 ~ 10-15 07:27</a></td><td>552</td><td>51.4%</td><td>74.1%</td><td class="up">+22.6</td><td>18.98</td><td>17.95</td><td>44.6%</td><td>21.9%</td><td>300~690</td></tr>
+<tr><td><a href="班次_1015_1557.html">10-15 15:57 ~ 10-15 19:03</a></td><td>187</td><td>97.9%</td><td>97.9%</td><td class="up">+0.0</td><td>4.08</td><td>5.84</td><td>0.0%</td><td>0.0%</td><td>543~633</td></tr>
+<tr><td><a href="班次_1015_2204.html">10-15 22:04 ~ 10-16 07:03</a></td><td>540</td><td>95.0%</td><td>95.7%</td><td class="up">+0.7</td><td>6.39</td><td>5.93</td><td>1.5%</td><td>1.5%</td><td>300~587</td></tr>
+<tr><td><a href="班次_1016_2153.html">10-16 21:53 ~ 10-17 03:42</a></td><td>350</td><td>88.0%</td><td>88.0%</td><td class="up">+0.0</td><td>10.30</td><td>10.17</td><td>7.7%</td><td>7.7%</td><td>510~657</td></tr>
+<tr><td><a href="班次_1017_1353.html">10-17 13:53 ~ 10-17 16:42</a></td><td>170</td><td>25.3%</td><td>38.8%</td><td class="up">+13.5</td><td>22.79</td><td>22.38</td><td>53.5%</td><td>42.9%</td><td>300~690</td></tr>
+<tr><td><a href="班次_1017_2205.html">10-17 22:05 ~ 10-18 06:18</a></td><td>494</td><td>58.7%</td><td>87.9%</td><td class="up">+29.1</td><td>9.76</td><td>7.79</td><td>38.7%</td><td>9.5%</td><td>500~690</td></tr>
+<tr><td><a href="班次_1018_1919.html">10-18 19:19 ~ 10-19 03:03</a></td><td>465</td><td>62.8%</td><td>86.9%</td><td class="up">+24.1</td><td>8.02</td><td>8.46</td><td>34.8%</td><td>10.8%</td><td>529~690</td></tr>
+</table></body></html>

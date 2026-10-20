@@ -1,0 +1,39 @@
+# ============================================================
+# 消石灰制备控制模型 · 统一服务配置（示例模板）
+# 用法：复制为 config.yaml 后填写实际值
+#   cp config.example.yaml config.yaml
+# config.yaml 已被 .gitignore 忽略（含鉴权令牌，不入仓库）
+# 命令行参数优先于本文件；本文件缺字段回落代码默认值。
+# ============================================================
+
+# ---- 微服务 ----
+server:
+  host: 0.0.0.0
+  port: 9999
+
+# ---- 现场初始设定（/startup 载荷可逐项覆盖）----
+startup:
+  ratio_init: 600.0       # 初始水率 L/t（现场设定，例 600）
+  lime_sp: 3.5            # 现场下料量设定值 t/h（模型调节范围 = ±0.5）
+  curr1_high: 18.0        # 一级电流上限 X (A)，≥X 触发电流规则，23A 停产报警
+  speed_set: 46.0         # 一级电机转速固定输出（实测 42~50，中位 46）
+
+# ---- 时序库（queryRealTimeValues 实时值接口）----
+tsdb:
+  base_url: http://168.168.10.46:18800
+  token: ""               # 鉴权令牌，请求头 Authorization: Bearer {token}；空则不带
+  timeout: 8.0            # 单次请求超时（秒）
+
+# ---- 趋势预测控制参数（T3 闭环，现役算法）----
+control:
+  target: 118.0           # T3 目标温度 ℃
+  trend_kp: 2.0           # L/t per ℃（预测误差比例系数）
+  trend_predict_min: 15.0 # 斜率前瞻（分钟）
+  trend_dead: 3.0         # 预测误差死区 ℃
+  trend_dead_slope: 0.3   # 斜率死区 ℃/min（贴目标且平稳时不动）
+  trend_step_max: 25.0    # 单拍步长上限 L/t（温和微调，像人工）
+  trend_step_fast: 60.0   # 瞬时严重越线时单拍步长上限 L/t
+  trend_slope_window: 15.0  # 斜率拟合窗口（分钟）
+  trend_ratio_lo: 500.0   # 水率下限（控制范围 500~690，不可超过）
+  temp3_fast_high: 135.0  # 瞬时 T3 超此值当拍快通道触发
+  temp3_fast_low: 95.0    # 瞬时 T3 低于此值当拍快通道触发（仅稳态）

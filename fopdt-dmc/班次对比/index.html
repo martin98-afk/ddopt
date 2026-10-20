@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8"><title>各生产班次对比汇总</title>
+<style>body{font-family:'Microsoft YaHei',sans-serif;margin:20px;background:#fafafa}
+table{border-collapse:collapse;background:#fff}
+th,td{border:1px solid #ddd;padding:8px 14px;font-size:14px;text-align:center}
+th{background:#f0f0f0}a{color:#1f6feb;text-decoration:none}
+.up{color:#1a9c6e;font-weight:bold}.down{color:#c0392b;font-weight:bold}
+.note{color:#666;font-size:13px;margin:12px 0}</style></head><body>
+<h3>各生产班次 · 趋势预测控制 vs 人工</h3>
+<div class="note">每个班次一份独立对比图。合格率 = T3 落在 100~130℃ 的时间占比；
+方法 = 响应核推演 + 共同扰动法（两方共用同一扰动，差异只来自水率操作）。</div>
+<table><tr><th>班次</th><th>时长 min</th><th>人工>130℃ min</th>
+<th>人工合格率</th><th>模型提升</th><th>人工σ</th><th>模型σ</th></tr>
+<tr><td><a href="班次_1019_1634.html">10-19 16:34 ~ 10-20 02:01</a></td><td>568</td><td>31</td><td>91.7%</td><td class="up">+5.5</td><td>9.92</td><td>7.65</td></tr>
+<tr><td><a href="班次_1020_0310.html">10-20 03:10 ~ 10-20 03:59</a></td><td>50</td><td>35</td><td>30.0%</td><td class="up">+0.0</td><td>16.80</td><td>16.44</td></tr></table></body></html>

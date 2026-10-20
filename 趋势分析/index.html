@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>消石灰制备 · 趋势分析</title>
+<script src="echarts.min.js"></script>
+<script src="data.js"></script>
+<style>
+:root{
+  --bg:#0e1319; --panel:#151c24; --panel2:#1a232e; --border:#26313d;
+  --fg:#d7e0ea; --fg-dim:#7d8b99; --accent:#38bdf8; --accent2:#f59e0b;
+  --sim:#38bdf8; --sw:#f59e0b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:13px/1.5 "Segoe UI","Microsoft YaHei",sans-serif;overflow:hidden}
+header{height:48px;display:flex;align-items:center;gap:14px;padding:0 16px;border-bottom:1px solid var(--border);background:var(--panel)}
+header h1{font-size:15px;font-weight:600;letter-spacing:.5px}
+header .info{color:var(--fg-dim);font-size:12px}
+header .spacer{flex:1}
+button{background:var(--panel2);color:var(--fg);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px}
+button:hover{border-color:var(--accent);color:var(--accent)}
+#app{display:flex;height:calc(100% - 48px)}
+/* 左栏 */
+#sidebar{width:290px;min-width:290px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--panel)}
+#search{margin:10px;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--fg);outline:none;font-size:12px}
+#search:focus{border-color:var(--accent)}
+#legend{display:flex;gap:12px;padding:0 12px 8px;font-size:11px;color:var(--fg-dim)}
+#legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
+#pointList{flex:1;overflow-y:auto;padding:0 6px 10px}
+.group-title{padding:6px 8px 4px;font-size:11px;color:var(--fg-dim);letter-spacing:1px}
+.pt{padding:6px 8px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:8px;border:1px solid transparent}
+.pt:hover{background:var(--panel2)}
+.pt.on{background:rgba(56,189,248,.10);border-color:rgba(56,189,248,.4)}
+.pt .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.pt.sim .dot{background:var(--sim)} .pt.sw .dot{background:var(--sw)}
+.pt .txt{flex:1;min-width:0}
+.pt .desc{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt .name{font-size:10px;color:var(--fg-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt .unit{font-size:10px;color:var(--fg-dim);flex:none}
+/* 主区 */
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+#tags{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px;min-height:20px}
+.tag{display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:11px}
+.tag i{width:8px;height:8px;border-radius:50%}
+.tag b{font-weight:400;color:var(--fg-dim);cursor:pointer;padding:0 2px}
+.tag b:hover{color:#f87171}
+#trendChart{flex:1;min-height:0}
+#detail{height:250px;border-top:1px solid var(--border);display:flex;background:var(--panel)}
+#detail .empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--fg-dim)}
+#statSide{width:520px;min-width:520px;padding:12px 16px;overflow-y:auto;border-right:1px solid var(--border)}
+#statSide h3{font-size:13px;margin-bottom:8px;font-weight:600}
+#statSide h3 small{color:var(--fg-dim);font-weight:400;margin-left:8px}
+#cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.card{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:7px 10px}
+.card .k{font-size:10px;color:var(--fg-dim)}
+.card .v{font-size:14px;font-weight:600;color:var(--accent)}
+#histChart{flex:1}
+/* 概览弹窗 */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:99}
+#modal.show{display:flex}
+#modal .box{width:86%;height:84%;background:var(--panel);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;overflow:hidden}
+#modal .box header{background:none;height:44px}
+#modal table{flex:1;overflow:auto;font-size:12px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:5px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+th{position:sticky;top:0;background:var(--panel2);color:var(--fg-dim);font-weight:500;cursor:pointer}
+tr:hover td{background:rgba(56,189,248,.05)}
+.num{font-variant-numeric:tabular-nums}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#2c3a48;border-radius:4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>消石灰制备 · 趋势分析</h1>
+  <span class="info" id="globalInfo"></span>
+  <span class="spacer"></span>
+  <button id="btnOverview">数据概览表</button>
+  <button id="btnClear">清空选择</button>
+</header>
+<div id="app">
+  <aside id="sidebar">
+    <input id="search" placeholder="搜索测点名 / 描述 …">
+    <div id="legend"><span><i style="background:var(--sim)"></i>模拟量</span><span><i style="background:var(--sw)"></i>开关量</span></div>
+    <div id="pointList"></div>
+  </aside>
+  <main>
+    <div id="tags"></div>
+    <div id="trendChart"></div>
+    <div id="detail">
+      <div id="statSide">
+        <h3 id="statTitle">统计详情<small>点击左侧测点查看</small></h3>
+        <div id="cards"></div>
+      </div>
+      <div id="histChart"></div>
+    </div>
+  </main>
+</div>
+<div id="modal">
+  <div class="box">
+    <header><h1>数据概览</h1><span class="spacer"></span><button onclick="document.getElementById('modal').classList.remove('show')">关闭</button></header>
+    <table><thead><tr>
+      <th data-k="desc">描述</th><th data-k="name">测点名</th><th data-k="ptype">类型</th>
+      <th data-k="rawN">原始点数</th><th data-k="days">跨度(天)</th><th data-k="mean">均值</th><th data-k="std">标准差</th>
+    </tr></thead><tbody id="ovBody"></tbody></table>
+  </div>
+</div>
+<script>
+"use strict";
+const D = window.XSH_DATA;
+const NAMES = Object.keys(D.points);
+const PALETTE = ['#38bdf8','#f59e0b','#a78bfa','#34d399','#f472b6','#fbbf24','#60a5fa','#4ade80','#fb923c','#e879f9'];
+
+/* ---------- 解码工具 ---------- */
+function b64Bytes(b64){
+  const bin = atob(b64), u8 = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
+  return u8;
+}
+const _cache = {};
+function getSeries(name){
+  if(_cache[name]) return _cache[name];
+  const e = D.points[name];
+  let pts;
+  if(e.ptype === '开关量'){
+    const ct = new Uint16Array(b64Bytes(e.ct).buffer);
+    const cv = new Uint8Array(b64Bytes(e.cv));
+    pts = [];
+    for(let i=0;i<ct.length;i++) pts.push([(e.t0 + ct[i]*60)*1000, cv[i]]);
+  }else{
+    const ts = new Uint16Array(b64Bytes(e.ts).buffer);
+    const v  = new Float32Array(b64Bytes(e.v).buffer);
+    pts = [];
+    for(let i=0;i<ts.length;i++) pts.push([(e.t0 + ts[i]*60)*1000, Math.round(v[i]*10000)/10000]);
+  }
+  return _cache[name] = pts;
+}
+const fmtN = x => Math.abs(x)>=100 ? x.toFixed(1) : Math.abs(x)>=1 ? x.toFixed(3) : x.toPrecision(4);
+const fmtT = ms => echarts.time.format(ms, '{yyyy}-{MM}-{dd} {HH}:{mm}');
+
+/* ---------- 全局信息 ---------- */
+{
+  const t0 = new Date(D.t0Global*1000), t1 = new Date(Math.max(...NAMES.map(n=>D.points[n].span[1]))*1000);
+  const days = ((t1 - t0)/864e5).toFixed(1);
+  const sim = NAMES.filter(n=>D.points[n].ptype!=='开关量').length;
+  document.getElementById('globalInfo').textContent =
+    `${t0.toLocaleString()} ~ ${t1.toLocaleString()}（${days} 天）· ${NAMES.length} 测点（模拟量 ${sim} / 开关量 ${NAMES.length-sim}）· ${D.generated} 生成`;
+}
+
+/* ---------- 测点列表 ---------- */
+const listEl = document.getElementById('pointList');
+function renderList(kw){
+  kw = (kw||'').trim().toLowerCase();
+  const groups = {'模拟量':[], '开关量':[]};
+  for(const n of NAMES){
+    const e = D.points[n];
+    if(kw && !n.toLowerCase().includes(kw) && !e.desc.toLowerCase().includes(kw)) continue;
+    groups[e.ptype==='开关量'?'开关量':'模拟量'].push(n);
+  }
+  let html = '';
+  for(const g of ['模拟量','开关量']){
+    if(!groups[g].length) continue;
+    html += `<div class="group-title">${g}（${groups[g].length}）</div>`;
+    for(const n of groups[g]){
+      const e = D.points[n];
+      html += `<div class="pt ${e.ptype==='开关量'?'sw':'sim'}${selected.includes(n)?' on':''}" data-n="${n}">`+
+        `<span class="dot"></span><span class="txt"><span class="desc">${e.desc||n}</span><span class="name">${n}</span></span>`+
+        `<span class="unit">${e.unit||''}</span></div>`;
+    }
+  }
+  listEl.innerHTML = html || '<div style="padding:20px;text-align:center;color:var(--fg-dim)">无匹配测点</div>';
+}
+const selected = [];   // 有序数组
+let focusName = null;  // 统计详情当前测点
+
+listEl.addEventListener('click', ev=>{
+  const item = ev.target.closest('.pt');
+  if(!item) return;
+  toggleSelect(item.dataset.n);
+});
+function toggleSelect(name){
+  const i = selected.indexOf(name);
+  if(i >= 0) selected.splice(i,1);
+  else selected.push(name);
+  focusName = name;
+  renderList(document.getElementById('search').value);
+  renderTags(); renderTrend(); renderDetail();
+}
+document.getElementById('search').addEventListener('input', e=>renderList(e.target.value));
+document.getElementById('btnClear').onclick = ()=>{ selected.length=0; focusName=null; renderList(document.getElementById('search').value); renderTags(); renderTrend(); renderDetail(); };
+
+/* ---------- 已选标签 ---------- */
+const tagsEl = document.getElementById('tags');
+function renderTags(){
+  tagsEl.innerHTML = selected.map((n,i)=>{
+    const e = D.points[n];
+    return `<span class="tag"><i style="background:${PALETTE[i%PALETTE.length]}"></i>${e.desc||n}${e.unit?` (${e.unit})`:''}<b data-x="${n}">✕</b></span>`;
+  }).join('') || '<span style="color:var(--fg-dim);font-size:12px;padding:2px">点击左侧测点加入曲线（可多选叠加）</span>';
+}
+tagsEl.addEventListener('click', ev=>{
+  const x = ev.target.closest('b[data-x]');
+  if(x) toggleSelect(x.dataset.x);
+});
+
+/* ---------- 主趋势图 ---------- */
+const trend = echarts.init(document.getElementById('trendChart'), null, {renderer:'canvas'});
+const AXIS_CFG = { axisLine:{lineStyle:{color:'#3a4a5a'}}, axisLabel:{color:'#7d8b99'}, splitLine:{lineStyle:{color:'rgba(60,75,90,.25)'}} };
+function renderTrend(){
+  const series = [], yAxes = [
+    {...AXIS_CFG, type:'value', scale:true, position:'left'},
+  ];
+  let leftUsed=false, rightIdx=1, swAxisIdx=-1;
+  const legend = [];
+  selected.forEach((name,i)=>{
+    const e = D.points[name], isSw = e.ptype==='开关量';
+    let yIdx;
+    if(isSw){
+      if(swAxisIdx < 0){
+        swAxisIdx = yAxes.length;
+        yAxes.push({...AXIS_CFG, type:'value', min:0, max:1, position:'right', offset:52,
+          axisLabel:{color:'#b45309', formatter:v=>v?'1':'0'}, splitLine:{show:false}});
+      }
+      yIdx = swAxisIdx;
+    }else if(!leftUsed){ yIdx=0; leftUsed=true; }
+    else{
+      if(yAxes.length===1 || yAxes[1]?.position!=='right'){
+        yAxes.splice(1, 0, {...AXIS_CFG, type:'value', scale:true, position:'right', splitLine:{show:false}});
+        rightIdx = 1;
+      }
+      yIdx = 1;
+    }
+    const color = PALETTE[i%PALETTE.length];
+    legend.push({name:e.desc||n2s(name), itemStyle:{color}});
+    series.push({
+      name:e.desc||n2s(name), type:'line', yAxisIndex:yIdx, showSymbol:false,
+      step: isSw ? 'end' : false, sampling:'lttb', lineStyle:{width:isSw?1.5:1.5, color},
+      itemStyle:{color}, emphasis:{focus:'series'},
+      data: getSeries(name),
+    });
+  });
+  trend.setOption({
+    backgroundColor:'transparent',
+    animation:false,
+    grid:{left:60, right: yAxes.length>1 ? (swAxisIdx>=0?120:70) : 30, top:38, bottom:70},
+    legend: legend.length?{data:legend.map(l=>l.name), textStyle:{color:'#d7e0ea'}, top:4, type:'scroll'}:null,
+    tooltip:{trigger:'axis', backgroundColor:'#1a232e', borderColor:'#26313d', textStyle:{color:'#d7e0ea'},
+      valueFormatter: v => typeof v==='number' ? fmtN(v) : v},
+    axisPointer:{link:[{xAxisIndex:'all'}]},
+    xAxis:{...AXIS_CFG, type:'time', axisLabel:{color:'#7d8b99', hideOverlap:true}},
+    yAxis: yAxes,
+    dataZoom:[
+      {type:'inside', xAxisIndex:0},
+      {type:'slider', xAxisIndex:0, height:26, bottom:14, borderColor:'#26313d',
+       backgroundColor:'#151c24', fillerColor:'rgba(56,189,248,.12)',
+       handleStyle:{color:'#38bdf8'}, textStyle:{color:'#7d8b99'}, labelFormatter:fmtT},
+    ],
+    series,
+  }, {notMerge:true});
+}
+function n2s(n){ return n; }
+window.addEventListener('resize', ()=>{trend.resize(); hist.resize();});
+
+/* ---------- 统计详情 + 直方图 ---------- */
+const hist = echarts.init(document.getElementById('histChart'));
+function renderDetail(){
+  const cardsEl = document.getElementById('cards');
+  const titleEl = document.getElementById('statTitle');
+  if(!focusName){
+    titleEl.innerHTML = '统计详情<small>点击左侧测点查看</small>';
+    cardsEl.innerHTML = ''; hist.clear();
+    return;
+  }
+  const e = D.points[focusName];
+  titleEl.innerHTML = `${e.desc||focusName}<small>${focusName}${e.unit?' · '+e.unit:''}</small>`;
+  const row = (k,v)=>`<div class="card"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+  if(e.ptype==='开关量'){
+    cardsEl.innerHTML =
+      row('类型','开关量') + row('原始点数', e.rawN.toLocaleString()) +
+      row('ON 占比', (e.onRatio*100).toFixed(1)+'%') +
+      row('跨度(天)', ((e.span[1]-e.span[0])/86400).toFixed(2));
+    hist.clear();
+  }else{
+    const s = e.stats, h = e.hist;
+    cardsEl.innerHTML =
+      row('min', fmtN(s.min)) + row('max', fmtN(s.max)) + row('mean', fmtN(s.mean)) + row('std', fmtN(s.std)) +
+      row('p5', fmtN(s.p5)) + row('p50', fmtN(s.p50)) + row('p95', fmtN(s.p95)) +
+      row('跨度(天)', ((e.span[1]-e.span[0])/86400).toFixed(2));
+    // 直方图
+    const n = h.counts.length, step = (h.hi-h.lo)/n;
+    const cats = [], vals = h.counts.slice();
+    for(let i=0;i<n;i++) cats.push(fmtN(h.lo+(i+.5)*step));
+    hist.setOption({
+      backgroundColor:'transparent', animation:false,
+      title:{text:'秒级原始值分布直方图（p1~p99 截断）', left:10, top:6,
+        textStyle:{color:'#7d8b99', fontSize:12, fontWeight:400}},
+      grid:{left:70, right:16, top:36, bottom:44},
+      xAxis:{type:'category', data:cats, name:e.unit||'', nameTextStyle:{color:'#7d8b99'},
+        axisLabel:{color:'#7d8b99', interval:9, fontSize:10, rotate:0}},
+      yAxis:{...AXIS_CFG, type:'value', name:'频次', nameTextStyle:{color:'#7d8b99'}},
+      tooltip:{trigger:'axis', backgroundColor:'#1a232e', borderColor:'#26313d', textStyle:{color:'#d7e0ea'},
+        formatter: p=>{
+          const i = p[0].dataIndex, lo = h.lo+i*step, hi2 = lo+step;
+          return `区间 [${fmtN(lo)}, ${fmtN(hi2)})<br>频次 ${vals[i].toLocaleString()}（${(vals[i]/e.rawN*100).toFixed(2)}%）`;
+        }},
+      series:[{type:'bar', data:vals, barWidth:'96%',
+        itemStyle:{color:'#38bdf8', opacity:.75, borderRadius:[2,2,0,0]},
+        emphasis:{itemStyle:{color:'#7dd3fc'}}}],
+    }, {notMerge:true});
+  }
+}
+
+/* ---------- 概览表 ---------- */
+const ovRows = NAMES.map(n=>{
+  const e = D.points[n];
+  return {name:n, desc:e.desc, ptype:e.ptype, rawN:e.rawN,
+    days:+((e.span[1]-e.span[0])/86400).toFixed(2),
+    mean:e.stats?e.stats.mean:null, std:e.stats?e.stats.std:null,
+    onRatio:e.onRatio};
+});
+function renderOverview(k, asc){
+  const rows = [...ovRows].sort((a,b)=>{
+    let x=a[k], y=b[k];
+    if(x==null) return 1; if(y==null) return -1;
+    return (typeof x==='string' ? x.localeCompare(y) : x-y) * (asc?1:-1);
+  });
+  document.getElementById('ovBody').innerHTML = rows.map(r=>
+    `<tr><td>${r.desc}</td><td style="color:var(--fg-dim)">${r.name}</td>`+
+    `<td>${r.ptype==='开关量'?'<span style="color:var(--sw)">开关量</span>':'<span style="color:var(--sim)">模拟量</span>'}</td>`+
+    `<td class="num">${r.rawN.toLocaleString()}</td><td class="num">${r.days}</td>`+
+    `<td class="num">${r.ptype==='开关量' ? 'ON '+(r.onRatio*100).toFixed(1)+'%' : (r.mean!=null?fmtN(r.mean):'')}</td>`+
+    `<td class="num">${r.std!=null?fmtN(r.std):''}</td></tr>`).join('');
+}
+document.getElementById('btnOverview').onclick = ()=>{
+  renderOverview('rawN', true);
+  document.getElementById('modal').classList.add('show');
+};
+document.querySelector('#modal thead').addEventListener('click', ev=>{
+  const th = ev.target.closest('th[data-k]');
+  if(th) renderOverview(th.dataset.k, th.dataset.k==='desc'||th.dataset.k==='name'||th.dataset.k==='ptype');
+});
+
+/* ---------- 初始默认加载两个关键测点 ---------- */
+const DEFAULTS = ['5#_XSH_XSHCW','5#_XSH_SSHCW'];
+for(const n of DEFAULTS) if(D.points[n]) selected.push(n);
+focusName = selected[0] || null;
+renderList(''); renderTags(); renderTrend(); renderDetail();
+</script>
+</body>
+</html>

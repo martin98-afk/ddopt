@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8">
+<title>班次 2 · 10-20 03:10 ~ 10-20 03:59</title>
+<script src="../../趋势分析/echarts.min.js"></script>
+<style>body{font-family:'Microsoft YaHei',sans-serif;margin:16px;background:#fafafa}
+#main{width:96vw;height:760px;background:#fff;border:1px solid #e0e0e0}
+.note{color:#666;font-size:13px;line-height:1.7}
+.kpi{display:flex;gap:28px;margin:10px 0 12px;font-size:14px}
+.kpi div{background:#fff;border:1px solid #e0e0e0;padding:8px 14px;border-radius:4px}
+.kpi b{font-size:18px;margin-left:6px}
+.up{color:#1a9c6e}.down{color:#c0392b}</style></head>
+<body>
+<h3>班次 2 · 10-20 03:10 ~ 10-20 03:59</h3>
+<div class="note">段长 50 min，人工实测 T3>130℃ 35 min。灰=人工实际；绿=趋势预测模型（当前温度+斜率预测未来 15min，提前干预，双向连续调节）。红背景=人工实测 T3>130℃，蓝背景=<100℃。</div>
+<div class="kpi">
+  <div>人工合格率<b>30.0%</b></div>
+  <div>模型合格率<b class="up">30.0%</b></div>
+  <div>提升<b class="up">+0.0 个百分点</b></div>
+  <div>T3 标准差 人工 16.80 / 模型 16.44</div>
+  <div>水率动作 人工 1 次 / 模型 5 次</div>
+</div>
+<div id="main"></div>
+<script>
+var D = {"t": ["10-20 03:10", "10-20 03:11", "10-20 03:12", "10-20 03:13", "10-20 03:14", "10-20 03:15", "10-20 03:16", "10-20 03:17", "10-20 03:18", "10-20 03:19", "10-20 03:20", "10-20 03:21", "10-20 03:22", "10-20 03:23", "10-20 03:24", "10-20 03:25", "10-20 03:26", "10-20 03:27", "10-20 03:28", "10-20 03:29", "10-20 03:30", "10-20 03:31", "10-20 03:32", "10-20 03:33", "10-20 03:34", "10-20 03:35", "10-20 03:36", "10-20 03:37", "10-20 03:38", "10-20 03:39", "10-20 03:40", "10-20 03:41", "10-20 03:42", "10-20 03:43", "10-20 03:44", "10-20 03:45", "10-20 03:46", "10-20 03:47", "10-20 03:48", "10-20 03:49", "10-20 03:50", "10-20 03:51", "10-20 03:52", "10-20 03:53", "10-20 03:54", "10-20 03:55", "10-20 03:56", "10-20 03:57", "10-20 03:58", "10-20 03:59"], "t3_act": [111.2, 111.2, 111.0, 111.0, 110.9, 110.7, 110.7, 110.6, 110.7, 111.4, 112.3, 112.4, 115.4, 122.9, 122.9, 136.9, 145.1, 150.9, 154.3, 154.9, 154.7, 153.3, 153.3, 150.8, 149.8, 148.7, 148.2, 148.4, 149.1, 150.0, 150.8, 150.6, 150.1, 148.4, 147.6, 147.1, 147.5, 148.1, 148.5, 148.5, 147.9, 147.7, 147.5, 147.6, 147.7, 147.7, 147.4, 147.2, 147.5, 148.0], "t3_tr": [111.2, 111.2, 111.0, 111.0, 110.9, 110.7, 110.7, 110.6, 110.7, 111.4, 112.3, 112.4, 115.4, 122.9, 122.9, 136.9, 145.1, 150.9, 154.3, 154.9, 154.7, 153.3, 153.3, 150.8, 149.8, 148.7, 148.2, 148.4, 149.1, 150.0, 150.63, 150.25, 149.58, 147.72, 146.75, 146.09, 146.34, 146.78, 147.03, 146.88, 146.13, 145.78, 145.44, 145.4, 145.36, 145.23, 144.79, 144.46, 144.63, 145.0], "r_act": [620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 620.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0, 630.0], "r_tr": [586.4, 586.4, 586.4, 586.4, 586.4, 568.9, 568.9, 568.9, 568.9, 568.9, 558.7, 558.7, 558.7, 558.7, 558.7, 618.7, 618.7, 618.7, 618.7, 618.7, 678.7, 678.7, 678.7, 678.7, 678.7, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0, 690.0], "over_hi": [[{"xAxis": 15}, {"xAxis": 49}]], "over_lo": []};
+function mk(pairs,color){return pairs.map(function(p){return [
+  {xAxis:p[0].xAxis,itemStyle:{color:color}},
+  {xAxis:p[1].xAxis,itemStyle:{color:color}}];});}
+var chart = echarts.init(document.getElementById('main'));
+chart.setOption({animation:false,
+  axisPointer:{link:[{xAxisIndex:'all'}]},
+  tooltip:{trigger:'axis'},
+  legend:{top:10,data:[
+    {name:'T3人工',itemStyle:{color:'#888'}},
+    {name:'T3模型',itemStyle:{color:'#1a9c6e'}},
+    {name:'水率人工',itemStyle:{color:'#888'}},
+    {name:'水率模型',itemStyle:{color:'#1a9c6e'}}]},
+  grid:[{left:70,right:40,top:60,height:'34%'},
+        {left:70,right:40,top:'56%',height:'32%'}],
+  xAxis:[{type:'category',data:D.t,gridIndex:0,axisLabel:{show:false}},
+         {type:'category',data:D.t,gridIndex:1}],
+  yAxis:[{name:'T3 ℃',gridIndex:0,min:40,max:180},
+         {name:'水率 L/t',gridIndex:1,min:300,max:720}],
+  series:[
+    {name:'T3人工',type:'line',data:D.t3_act,xAxisIndex:0,yAxisIndex:0,symbol:'none',
+     lineStyle:{color:'#888',width:1.2}},
+    {name:'T3模型',type:'line',data:D.t3_tr,xAxisIndex:0,yAxisIndex:0,symbol:'none',
+     lineStyle:{color:'#1a9c6e',width:1.8}},
+    {name:'带130',type:'line',xAxisIndex:0,yAxisIndex:0,data:[],
+     markLine:{silent:true,symbol:'none',label:{formatter:'130℃',position:'insideEndTop'},
+       lineStyle:{color:'#c0392b',type:'dashed'},data:[{yAxis:130}]}},
+    {name:'带100',type:'line',xAxisIndex:0,yAxisIndex:0,data:[],
+     markLine:{silent:true,symbol:'none',label:{formatter:'100℃',position:'insideEndBottom'},
+       lineStyle:{color:'#2471a3',type:'dashed'},data:[{yAxis:100}]}},
+    {name:'超标背景',type:'line',xAxisIndex:0,yAxisIndex:0,data:[],
+     markArea:{silent:true,data:mk(D.over_hi,'rgba(192,57,43,0.08)')
+       .concat(mk(D.over_lo,'rgba(36,113,163,0.08)'))}},
+    {name:'水率人工',type:'line',data:D.r_act,xAxisIndex:1,yAxisIndex:1,
+     symbol:'none',lineStyle:{color:'#888',width:1.4}},
+    {name:'水率模型',type:'line',data:D.r_tr,xAxisIndex:1,yAxisIndex:1,
+     symbol:'none',lineStyle:{color:'#1a9c6e',width:2},step:'end'}
+  ]
+});
+window.addEventListener('resize',function(){chart.resize();});
+</script></body></html>
